@@ -5,6 +5,7 @@
 * [Vithor Massing dos Santos](https://github.com/VithorSantos)
 * [José Augusto Ferreira](https://github.com/testerapido157-star)
 * [Eric Levi Sena Silveira](https://github.com/ezlss)
+* [Leonardo de Medeiros Binatti](https://github.com/BinattiLeonardo).
 
 ## Descrição do Projeto
 Trabalho desenvolvido para a disciplina de Qualidade de Software na Unisul 2026/1. Este projeto consiste em um motor de processamento de checkout via terminal, focado na validação rigorosa de regras de negócio em um sistema de vendas. 
