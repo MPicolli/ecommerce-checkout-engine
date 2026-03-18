@@ -1,4 +1,4 @@
-# 🛒 E-Commerce Checkout Engine
+# E-Commerce Checkout Engine
 
 ## Integrantes
 * [Matheus Picolli Ishibashi] (https://github.com/MPicolli)
