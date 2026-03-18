@@ -17,3 +17,5 @@ O objetivo principal não é a interface gráfica, mas sim a construção de uma
 * **Framework de Testes:** JUnit 5 (Jupiter)
 * **Simulação de Dependências:** Mockito
 * **Métrica de Cobertura:** JaCoCo (Java Code Coverage)
+
+
