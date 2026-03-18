@@ -1,9 +1,9 @@
 # 🛒 E-Commerce Checkout Engine
 
 ## 👥 Integrantes
-* Matheus Picolli Ishibashi- [https://github.com/MPicolli]
-* Vithor Massing dos Santos - [https://github.com/VithorSantos]
-* José Augusto Ferreira - [https://github.com/testerapido157-star]
+* [Matheus Picolli Ishibashi](https://github.com/MPicolli)
+* [Vithor Massing dos Santos](https://github.com/VithorSantos)
+* [José Augusto Ferreira](https://github.com/testerapido157-star)
 
 ## 📝 Descrição do Projeto
 Trabalho desenvolvido para a disciplina de Qualidade de Software. Este projeto consiste em um motor de processamento de checkout via terminal, focado na validação rigorosa de regras de negócio em um sistema de vendas. 
