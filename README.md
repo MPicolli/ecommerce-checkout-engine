@@ -44,6 +44,7 @@ Adotamos o padrão Conventional Commits para manter o histórico organizado e co
 * `docs`: alterações na documentação
 * `test`: criação ou alteração de testes
 * `refactor`: melhoria no código sem alterar comportamento
+* `chore` : tarefas de manutenção, configurações de build ou dependências
 
 ### Exemplos:
 * `feat: adiciona cálculo de frete`
