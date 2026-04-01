@@ -1,0 +1,35 @@
+# ==========================================
+# Configurações do Java e Maven
+# ==========================================
+target/
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+*.log
+
+# ==========================================
+# Ignorar arquivos do VS Code
+# ==========================================
+.vscode/
+*.code-workspace
+
+# ==========================================
+# Ignorar arquivos de outras IDEs (Garantia)
+# ==========================================
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+
+# Eclipse
+.settings/
+.project
+.classpath
+
+# ==========================================
+# Arquivos do Sistema Operacional
+# ==========================================
+.DS_Store
+Thumbs.db
