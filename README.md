@@ -20,4 +20,34 @@ O objetivo principal não é a interface gráfica, mas sim a construção de uma
 * **Simulação de Dependências:** Mockito
 * **Métrica de Cobertura:** JaCoCo (Java Code Coverage)
 
+## Workflow de Versionamento
+Adotamos o GitHub Flow para o desenvolvimento do projeto.
+
+### Estrutura de Branches
+* `main`: contém a versão estável do sistema
+* `feature/nome-da-feature`: utilizada para desenvolvimento de novas funcionalidades, criadas a partir da `main`
+
+### Fluxo de Trabalho
+1. Criar uma branch a partir da `main`
+2. Desenvolver a funcionalidade na branch criada
+3. Realizar commits seguindo o padrão Conventional Commits
+4. Abrir um Pull Request (PR) para a branch `main`
+5. Outro integrante revisa o código
+6. Após aprovação, realizar o merge na `main`
+
+## Padrão de Commits
+Adotamos o padrão Conventional Commits para manter o histórico organizado e compreensível.
+
+### Tipos de commit utilizados:
+* `feat`: nova funcionalidade
+* `fix`: correção de bug
+* `docs`: alterações na documentação
+* `test`: criação ou alteração de testes
+* `refactor`: melhoria no código sem alterar comportamento
+
+### Exemplos:
+* `feat: adiciona cálculo de frete`
+* `fix: corrige validação de cupom expirado`
+* `docs: atualiza README com workflow`
+* `test: adiciona testes do checkout`
 
