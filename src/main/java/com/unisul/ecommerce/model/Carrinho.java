@@ -1,5 +1,6 @@
 package com.unisul.ecommerce.model;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -52,6 +53,23 @@ public class Carrinho {
 
     public void setCupomAplicado(Cupom cupomAplicado) {
         this.cupomAplicado = cupomAplicado;
+    }
+
+    // Calcula e retorna o valor total de todos os itens no carrinho.
+    public BigDecimal getValorTotal() {
+        if (this.itens == null || this.itens.isEmpty()) {
+            return BigDecimal.ZERO;
+        }
+
+        BigDecimal total = BigDecimal.ZERO;
+
+        for (ItemCarrinho item : this.itens) {
+            BigDecimal precoProduto = item.getProduto().getPreco();
+            BigDecimal quantidade = BigDecimal.valueOf(item.getQuantidade());
+            BigDecimal subtotalItem = precoProduto.multiply(quantidade);
+            total = total.add(subtotalItem);
+        }
+        return total;
     }
 
 }
