@@ -1,3 +1,5 @@
+package com.unisul.ecommerce.service;
+
 public class FidelidadeService {
 
     private int pontos;
