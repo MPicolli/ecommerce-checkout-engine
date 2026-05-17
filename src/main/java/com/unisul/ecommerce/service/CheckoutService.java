@@ -1,6 +1,5 @@
 package com.unisul.ecommerce.service;
 
-import com.unisul.ecommerce.FidelidadeService;
 import com.unisul.ecommerce.exception.CarrinhoVazioException;
 import com.unisul.ecommerce.exception.CupomInvalidoException;
 import com.unisul.ecommerce.model.Carrinho;
