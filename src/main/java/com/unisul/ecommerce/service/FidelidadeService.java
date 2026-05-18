@@ -8,6 +8,13 @@ public class FidelidadeService {
         this.pontos = 0;
     }
 
+    public FidelidadeService(int pontosIniciais) {
+        if (pontosIniciais < 0) {
+            throw new IllegalArgumentException("O saldo inicial de pontos não pode ser negativo.");
+        }
+        this.pontos = pontosIniciais;
+    }
+
     public int getPontos() {
         return pontos;
     }
