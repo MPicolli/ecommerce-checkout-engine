@@ -38,7 +38,7 @@ public class CheckoutService {
         // 2. Aplicar cupom se existir
         BigDecimal valorComDesconto = subtotal;
         BigDecimal valorDescontos = BigDecimal.ZERO;
-        
+
         if (carrinho.getCupomAplicado() != null) {
             valorComDesconto = cupomService.aplicarCupom(subtotal, carrinho.getCupomAplicado());
             valorDescontos = subtotal.subtract(valorComDesconto);
@@ -52,7 +52,7 @@ public class CheckoutService {
 
         // 5. Calcular e acumular pontos de fidelidade
         int pontosGanhos = calcularPontosGanhos(totalFinal);
-        fidelidadeService.acumularPontos(totalFinal.doubleValue());
+        fidelidadeService.acumularPontos(totalFinal);
 
         // Atualizar saldo de pontos do cliente também (sincronizar estado local)
         Cliente cliente = carrinho.getCliente();
@@ -63,13 +63,12 @@ public class CheckoutService {
 
         // 6. Montar o resumo do pedido
         ResumoPedido resumo = new ResumoPedido(
-            carrinho,
-            subtotal,
-            valorDescontos,
-            valorFrete,
-            pontosGanhos,
-            totalFinal
-        );
+                carrinho,
+                subtotal,
+                valorDescontos,
+                valorFrete,
+                pontosGanhos,
+                totalFinal);
 
         return resumo;
     }
@@ -77,15 +76,15 @@ public class CheckoutService {
     /**
      * Processa o checkout com uso de pontos de fidelidade.
      * 
-     * @param carrinho o carrinho com itens e cliente
+     * @param carrinho    o carrinho com itens e cliente
      * @param pontosAUsar quantidade de pontos a serem resgatados
      * @return ResumoPedido com desconto aplicado pelos pontos
      * @throws CarrinhoVazioException se o carrinho estiver vazio
      * @throws CupomInvalidoException se o cupom for inválido
      */
-    public ResumoPedido finalizarPedidoComPontos(Carrinho carrinho, int pontosAUsar) 
+    public ResumoPedido finalizarPedidoComPontos(Carrinho carrinho, int pontosAUsar)
             throws CarrinhoVazioException, CupomInvalidoException {
-        
+
         ResumoPedido resumo = finalizarPedido(carrinho);
 
         if (pontosAUsar > 0) {
@@ -123,7 +122,7 @@ public class CheckoutService {
         if (carrinho == null || carrinho.getItens() == null || carrinho.getItens().isEmpty()) {
             throw new CarrinhoVazioException();
         }
-        
+
         if (carrinho.getCliente() == null || carrinho.getCliente().getCep() == null) {
             throw new IllegalArgumentException("Cliente e CEP são obrigatórios para finalizar o pedido.");
         }
