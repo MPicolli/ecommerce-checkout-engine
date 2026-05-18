@@ -5,7 +5,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import com.unisul.ecommerce.exception.CarrinhoVazioException;
-import com.unisul.ecommerce.exception.CupomInvalidoException;
 import com.unisul.ecommerce.model.Carrinho;
 import com.unisul.ecommerce.model.Cliente;
 import com.unisul.ecommerce.model.Cupom;

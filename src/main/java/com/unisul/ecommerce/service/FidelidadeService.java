@@ -42,12 +42,15 @@ public class FidelidadeService {
         if (pontosParaResgate <= 0) {
             throw new IllegalArgumentException("A quantidade de pontos para resgate deve ser maior que zero.");
         }
+
+        if (this.pontos < 100) {
+            throw new IllegalStateException("Pontos insuficientes para resgate (mínimo 100).");
+        }
+
         if (pontosParaResgate > this.pontos) {
-            throw new IllegalArgumentException("Quantidade maior que o saldo disponível");
+            throw new IllegalArgumentException("Quantidade maior que o saldo disponível.");
         }
-        if (pontosParaResgate < 100) {
-            throw new IllegalArgumentException("Pontos insuficientes para resgate. O mínimo é 100 pontos.");
-        }
+
         this.pontos -= pontosParaResgate;
     }
 
