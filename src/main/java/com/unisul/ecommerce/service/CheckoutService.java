@@ -22,98 +22,111 @@ public class CheckoutService {
 
     /**
      * Processa o checkout e gera o resumo do pedido.
+     * * @param carrinho o carrinho com itens e cliente
      * 
-     * @param carrinho o carrinho com itens e cliente
      * @return ResumoPedido com todos os cálculos finalizados
      * @throws CarrinhoVazioException se o carrinho estiver vazio
      * @throws CupomInvalidoException se o cupom for inválido
      */
     public ResumoPedido finalizarPedido(Carrinho carrinho) throws CarrinhoVazioException, CupomInvalidoException {
-        // Validar se o carrinho possui itens
         validarCarrinho(carrinho);
 
-        // 1. Calcular o subtotal do carrinho
         BigDecimal subtotal = carrinho.getValorTotal();
-
-        // 2. Aplicar cupom se existir
         BigDecimal valorComDesconto = subtotal;
-        BigDecimal valorDescontos = BigDecimal.ZERO;
-        
+
+        BigDecimal valorDescontos = new BigDecimal("0.00");
+
         if (carrinho.getCupomAplicado() != null) {
             valorComDesconto = cupomService.aplicarCupom(subtotal, carrinho.getCupomAplicado());
             valorDescontos = subtotal.subtract(valorComDesconto);
         }
 
-        // 3. Calcular frete baseado no CEP do cliente
         BigDecimal valorFrete = freteService.calcularFrete(carrinho, carrinho.getCliente().getCep());
+        BigDecimal totalFinal = valorComDesconto.add(valorFrete);
 
-        // 4. Calcular o total final (com desconto + frete)
-        BigDecimal totalFinal = valorComDesconto.add(valorFrete).setScale(2, RoundingMode.HALF_UP);
-
-        // 5. Calcular e acumular pontos de fidelidade
         int pontosGanhos = calcularPontosGanhos(totalFinal);
-        fidelidadeService.acumularPontos(totalFinal.doubleValue());
+        fidelidadeService.acumularPontos(totalFinal);
 
-        // Atualizar saldo de pontos do cliente também (sincronizar estado local)
         Cliente cliente = carrinho.getCliente();
         if (cliente != null) {
             int novosPontos = cliente.getSaldoPontos() + pontosGanhos;
             cliente.setSaldoPontos(novosPontos);
         }
 
-        // 6. Montar o resumo do pedido
-        ResumoPedido resumo = new ResumoPedido(
-            carrinho,
-            subtotal,
-            valorDescontos,
-            valorFrete,
-            pontosGanhos,
-            totalFinal
-        );
-
-        return resumo;
+        // CORREÇÃO FINAL: Forçando 2 casas decimais em todos os valores monetários do
+        // Resumo
+        return new ResumoPedido(
+                carrinho,
+                subtotal.setScale(2, RoundingMode.HALF_UP),
+                valorDescontos.setScale(2, RoundingMode.HALF_UP),
+                valorFrete.setScale(2, RoundingMode.HALF_UP),
+                pontosGanhos,
+                totalFinal.setScale(2, RoundingMode.HALF_UP));
     }
 
     /**
      * Processa o checkout com uso de pontos de fidelidade.
+     * * @param carrinho o carrinho com itens e cliente
      * 
-     * @param carrinho o carrinho com itens e cliente
      * @param pontosAUsar quantidade de pontos a serem resgatados
      * @return ResumoPedido com desconto aplicado pelos pontos
      * @throws CarrinhoVazioException se o carrinho estiver vazio
      * @throws CupomInvalidoException se o cupom for inválido
      */
-    public ResumoPedido finalizarPedidoComPontos(Carrinho carrinho, int pontosAUsar) 
+    public ResumoPedido finalizarPedidoComPontos(Carrinho carrinho, int pontosAUsar)
             throws CarrinhoVazioException, CupomInvalidoException {
-        
-        ResumoPedido resumo = finalizarPedido(carrinho);
+
+        validarCarrinho(carrinho);
+
+        BigDecimal subtotal = carrinho.getValorTotal();
+        BigDecimal valorComDesconto = subtotal;
+        BigDecimal valorDescontos = new BigDecimal("0.00");
+
+        if (carrinho.getCupomAplicado() != null) {
+            valorComDesconto = cupomService.aplicarCupom(subtotal, carrinho.getCupomAplicado());
+            valorDescontos = subtotal.subtract(valorComDesconto);
+        }
+
+        BigDecimal valorFrete = freteService.calcularFrete(carrinho, carrinho.getCliente().getCep());
+        BigDecimal totalFinal = valorComDesconto.add(valorFrete);
+
+        Cliente cliente = carrinho.getCliente();
 
         if (pontosAUsar > 0) {
-            // Resgatar pontos (lança exceção se insuficientes)
             fidelidadeService.resgatar(pontosAUsar);
 
-            // Converter pontos em desconto (1 ponto = R$ 0,10)
-            BigDecimal descontoPontos = BigDecimal.valueOf(pontosAUsar).multiply(new BigDecimal("0.10"))
-                    .setScale(2, RoundingMode.HALF_UP);
+            BigDecimal descontoPontos = BigDecimal.valueOf(pontosAUsar).multiply(new BigDecimal("0.10"));
 
-            // Aplicar desconto ao total
-            BigDecimal totalComDescontoPontos = resumo.getTotalFinal().subtract(descontoPontos);
-            if (totalComDescontoPontos.compareTo(BigDecimal.ZERO) < 0) {
-                totalComDescontoPontos = BigDecimal.ZERO;
+            totalFinal = totalFinal.subtract(descontoPontos);
+            if (totalFinal.compareTo(BigDecimal.ZERO) < 0) {
+                totalFinal = BigDecimal.ZERO;
             }
 
-            resumo.setValorDescontos(resumo.getValorDescontos().add(descontoPontos));
-            resumo.setTotalFinal(totalComDescontoPontos.setScale(2, RoundingMode.HALF_UP));
+            valorDescontos = valorDescontos.add(descontoPontos);
 
-            // Atualizar saldo de pontos do cliente localmente após resgate
-            Cliente cliente = carrinho.getCliente();
             if (cliente != null) {
                 int novos = cliente.getSaldoPontos() - pontosAUsar;
                 cliente.setSaldoPontos(Math.max(0, novos));
             }
         }
 
-        return resumo;
+        int pontosGanhos = calcularPontosGanhos(totalFinal);
+        fidelidadeService.acumularPontos(totalFinal);
+
+        if (cliente != null) {
+            int novosPontos = cliente.getSaldoPontos() + pontosGanhos;
+            cliente.setSaldoPontos(novosPontos);
+        }
+
+        // CORREÇÃO FINAL: Forçando 2 casas decimais em todos os valores monetários do
+        // Resumo
+        return new ResumoPedido(
+                carrinho,
+                subtotal.setScale(2, RoundingMode.HALF_UP),
+                valorDescontos.setScale(2, RoundingMode.HALF_UP),
+                valorFrete.setScale(2, RoundingMode.HALF_UP),
+                pontosGanhos,
+                totalFinal.setScale(2, RoundingMode.HALF_UP));
     }
 
     /**
@@ -123,7 +136,7 @@ public class CheckoutService {
         if (carrinho == null || carrinho.getItens() == null || carrinho.getItens().isEmpty()) {
             throw new CarrinhoVazioException();
         }
-        
+
         if (carrinho.getCliente() == null || carrinho.getCliente().getCep() == null) {
             throw new IllegalArgumentException("Cliente e CEP são obrigatórios para finalizar o pedido.");
         }

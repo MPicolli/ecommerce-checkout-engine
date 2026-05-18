@@ -1,10 +1,10 @@
 package com.unisul.ecommerce.service;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import com.unisul.ecommerce.exception.CarrinhoVazioException;
-import com.unisul.ecommerce.exception.CupomInvalidoException;
 import com.unisul.ecommerce.model.Carrinho;
 import com.unisul.ecommerce.model.Cliente;
 import com.unisul.ecommerce.model.Cupom;
@@ -36,10 +36,9 @@ class CheckoutServiceTest {
     void setUp() {
         MockitoAnnotations.openMocks(this);
         checkoutService = new CheckoutService(
-            cupomServiceMock,
-            freteServiceMock,
-            fidelidadeServiceMock
-        );
+                cupomServiceMock,
+                freteServiceMock,
+                fidelidadeServiceMock);
     }
 
     @Test
@@ -54,7 +53,7 @@ class CheckoutServiceTest {
 
         // Simular frete de R$ 15,00
         when(freteServiceMock.calcularFrete(carrinho, "88000000"))
-            .thenReturn(new BigDecimal("15.00"));
+                .thenReturn(new BigDecimal("15.00"));
 
         // Act
         ResumoPedido resumo = checkoutService.finalizarPedido(carrinho);
@@ -69,7 +68,7 @@ class CheckoutServiceTest {
 
         // Verificar que o método de frete foi chamado
         verify(freteServiceMock, times(1)).calcularFrete(carrinho, "88000000");
-        verify(fidelidadeServiceMock, times(1)).acumularPontos(2515.00);
+        verify(fidelidadeServiceMock, times(1)).acumularPontos(new BigDecimal("2515.00"));
     }
 
     @Test
@@ -87,11 +86,11 @@ class CheckoutServiceTest {
 
         // Cupom de 10% em R$ 200 = R$ 20 de desconto, total R$ 180
         when(cupomServiceMock.aplicarCupom(new BigDecimal("200.00"), cupom))
-            .thenReturn(new BigDecimal("180.00"));
+                .thenReturn(new BigDecimal("180.00"));
 
         // Frete grátis para compras acima de R$ 200 (antes do desconto)
         when(freteServiceMock.calcularFrete(carrinho, "01000000"))
-            .thenReturn(new BigDecimal("0.00"));
+                .thenReturn(new BigDecimal("0.00"));
 
         // Act
         ResumoPedido resumo = checkoutService.finalizarPedido(carrinho);
@@ -122,11 +121,11 @@ class CheckoutServiceTest {
 
         // Cupom fixo de R$ 25, total R$ 125
         when(cupomServiceMock.aplicarCupom(new BigDecimal("150.00"), cupom))
-            .thenReturn(new BigDecimal("125.00"));
+                .thenReturn(new BigDecimal("125.00"));
 
         // Frete de R$ 30,00
         when(freteServiceMock.calcularFrete(carrinho, "90000000"))
-            .thenReturn(new BigDecimal("30.00"));
+                .thenReturn(new BigDecimal("30.00"));
 
         // Act
         ResumoPedido resumo = checkoutService.finalizarPedido(carrinho);
@@ -177,7 +176,7 @@ class CheckoutServiceTest {
         carrinho.adicionarItem(produto, 1);
 
         when(freteServiceMock.calcularFrete(carrinho, "88000000"))
-            .thenReturn(new BigDecimal("20.00"));
+                .thenReturn(new BigDecimal("20.00"));
 
         // 100 pontos = R$ 10,00 de desconto
         int pontosAUsar = 100;
@@ -192,7 +191,7 @@ class CheckoutServiceTest {
         assertEquals(61, resumo.getPontosGanhos()); // 610 / 10 = 61
 
         verify(fidelidadeServiceMock, times(1)).resgatar(pontosAUsar);
-        verify(fidelidadeServiceMock, times(1)).acumularPontos(610.00);
+        verify(fidelidadeServiceMock, times(1)).acumularPontos(new BigDecimal("610.00"));
     }
 
     @Test
@@ -206,15 +205,15 @@ class CheckoutServiceTest {
         carrinho.adicionarItem(produto, 1);
 
         when(freteServiceMock.calcularFrete(carrinho, "88000000"))
-            .thenReturn(new BigDecimal("15.00"));
+                .thenReturn(new BigDecimal("15.00"));
 
         // Simular exceção ao tentar resgatar
         doThrow(new IllegalStateException("Pontos insuficientes para resgate"))
-            .when(fidelidadeServiceMock).resgatar(150);
+                .when(fidelidadeServiceMock).resgatar(150);
 
         // Act & Assert
-        assertThrows(IllegalStateException.class, 
-            () -> checkoutService.finalizarPedidoComPontos(carrinho, 150));
+        assertThrows(IllegalStateException.class,
+                () -> checkoutService.finalizarPedidoComPontos(carrinho, 150));
     }
 
     @Test
@@ -229,7 +228,7 @@ class CheckoutServiceTest {
 
         // Frete: R$ 15 (SP) + (5kg * R$ 2) = R$ 25
         when(freteServiceMock.calcularFrete(carrinho, "02000000"))
-            .thenReturn(new BigDecimal("25.00"));
+                .thenReturn(new BigDecimal("25.00"));
 
         // Act
         ResumoPedido resumo = checkoutService.finalizarPedido(carrinho);
@@ -254,7 +253,7 @@ class CheckoutServiceTest {
 
         // Total: R$ 2100 (frete grátis)
         when(freteServiceMock.calcularFrete(carrinho, "88000000"))
-            .thenReturn(BigDecimal.ZERO);
+                .thenReturn(BigDecimal.ZERO);
 
         // Act
         ResumoPedido resumo = checkoutService.finalizarPedido(carrinho);
