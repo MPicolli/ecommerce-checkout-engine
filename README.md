@@ -13,7 +13,7 @@ Trabalho desenvolvido para a disciplina de Qualidade de Software na Unisul 2026/
 O objetivo principal não é a interface gráfica, mas sim a construção de uma arquitetura resiliente e altamente testável. O sistema lida com cenários reais de entrada de usuário, como validação de cupons (validade e valor mínimo), verificação de estoque disponível e cálculo dinâmico de frete por CEP. A garantia de qualidade é assegurada por uma ampla suíte de testes unitários que cobrem tanto o "caminho feliz" quanto cenários de exceção e análise de valor limite.
 
 ## Tecnologias Previstas
-* **Linguagem:** Java 17+
+* **Linguagem:** Java 23.0.2
 * **Interface:** Terminal (Console)
 * **Gerenciador de Dependências:** Maven
 * **Framework de Testes:** JUnit 5 (Jupiter)
