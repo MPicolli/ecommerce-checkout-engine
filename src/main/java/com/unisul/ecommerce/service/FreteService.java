@@ -16,7 +16,7 @@ public class FreteService {
     public BigDecimal calcularFrete(Carrinho carrinho, String cep) {
 
         // RN04: Frete grátis para compras acima de R$ 200,00
-        if (carrinho.getValorTotal() != null && carrinho.getValorTotal().compareTo(LIMITE_FRETE_GRATIS) >= 0) {
+        if (carrinho.getValorTotal().compareTo(LIMITE_FRETE_GRATIS) >= 0) {
             return BigDecimal.ZERO;
         }
 

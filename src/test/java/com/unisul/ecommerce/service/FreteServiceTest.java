@@ -126,6 +126,17 @@ public class FreteServiceTest {
         });
     }
 
+    // --- COBERTURA: PROGRAMAÇÃO DEFENSIVA (NULOS) ---
+
+    @Test
+    public void deveCobrarApenasBase_QuandoListaDeItensForNula() {
+        // Cobre a condição do 'if' da linha 28 (carrinho.getItens() != null)
+        carrinho.setItens(null); 
+        
+        BigDecimal frete = freteService.calcularFrete(carrinho, "88000-000"); // Base Sul
+        assertEquals(0, new BigDecimal("15.00").compareTo(frete));
+    }
+
     // --- MÉTODO AUXILIAR ---
 
     private void adicionarProdutoAoCarrinho(String preco, String peso, int quantidade) {
