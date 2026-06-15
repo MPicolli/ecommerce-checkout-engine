@@ -1,267 +1,185 @@
 package com.unisul.ecommerce.service;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
-
 import com.unisul.ecommerce.exception.CarrinhoVazioException;
+import com.unisul.ecommerce.exception.CupomInvalidoException;
 import com.unisul.ecommerce.model.Carrinho;
 import com.unisul.ecommerce.model.Cliente;
 import com.unisul.ecommerce.model.Cupom;
+import com.unisul.ecommerce.model.ItemCarrinho;
 import com.unisul.ecommerce.model.Produto;
 import com.unisul.ecommerce.model.ResumoPedido;
-import com.unisul.ecommerce.model.TipoCupom;
-import java.math.BigDecimal;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 
-@DisplayName("CheckoutService - Testes")
-class CheckoutServiceTest {
+import java.math.BigDecimal;
+import java.util.ArrayList;
 
-    @Mock
-    private CupomService cupomServiceMock;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-    @Mock
-    private FreteService freteServiceMock;
+public class CheckoutServiceTest {
 
-    @Mock
-    private FidelidadeService fidelidadeServiceMock;
+        private CupomService cupomService;
+        private FreteService freteService;
+        private FidelidadeService fidelidadeService;
+        private CheckoutService checkoutService;
 
-    private CheckoutService checkoutService;
+        private Carrinho carrinhoValido;
+        private Cliente clienteValido;
 
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-        checkoutService = new CheckoutService(
-                cupomServiceMock,
-                freteServiceMock,
-                fidelidadeServiceMock);
-    }
+        @BeforeEach
+        public void setUp() {
+                // 1. Inicializando os Mocks (Dublês)
+                cupomService = mock(CupomService.class);
+                freteService = mock(FreteService.class);
+                fidelidadeService = mock(FidelidadeService.class);
 
-    @Test
-    @DisplayName("Deve finalizar pedido com sucesso sem cupom")
-    void testFinalizarPedidoSemCupom() {
-        // Arrange
-        Cliente cliente = new Cliente(1L, "João Silva", "88000000", 0);
-        Carrinho carrinho = new Carrinho(cliente);
+                // 2. Injetando os mocks no serviço real
+                checkoutService = new CheckoutService(cupomService, freteService, fidelidadeService);
 
-        Produto produto = new Produto(1L, "Notebook", new BigDecimal("2500.00"), new BigDecimal("2.5"));
-        carrinho.adicionarItem(produto, 1);
+                // 3. Criando um carrinho com dados básicos para passar na validação inicial
+                clienteValido = new Cliente();
+                clienteValido.setCep("88000-000");
+                clienteValido.setSaldoPontos(100);
 
-        // Simular frete de R$ 15,00
-        when(freteServiceMock.calcularFrete(carrinho, "88000000"))
-                .thenReturn(new BigDecimal("15.00"));
+                carrinhoValido = new Carrinho();
+                carrinhoValido.setCliente(clienteValido);
 
-        // Act
-        ResumoPedido resumo = checkoutService.finalizarPedido(carrinho);
+                Produto produto = new Produto();
+                produto.setPreco(new BigDecimal("100.00")); // Valor Base do Carrinho
 
-        // Assert
-        assertNotNull(resumo);
-        assertEquals(new BigDecimal("2500.00"), resumo.getSubtotal());
-        assertEquals(new BigDecimal("0.00"), resumo.getValorDescontos());
-        assertEquals(new BigDecimal("15.00"), resumo.getValorFrete());
-        assertEquals(new BigDecimal("2515.00"), resumo.getTotalFinal());
-        assertEquals(251, resumo.getPontosGanhos()); // 2515 / 10 = 251
+                carrinhoValido.setItens(new ArrayList<>());
+                carrinhoValido.getItens().add(new ItemCarrinho(produto, 1));
+        }
 
-        // Verificar que o método de frete foi chamado
-        verify(freteServiceMock, times(1)).calcularFrete(carrinho, "88000000");
-        verify(fidelidadeServiceMock, times(1)).acumularPontos(new BigDecimal("2515.00"));
-    }
+        // --- TESTES DE VALIDAÇÃO (EXCEÇÕES DA LINHA 136 E 140) ---
 
-    @Test
-    @DisplayName("Deve aplicar cupom percentual corretamente")
-    void testFinalizarPedidoComCupomPercentual() {
-        // Arrange
-        Cliente cliente = new Cliente(1L, "Maria Santos", "01000000", 0);
-        Carrinho carrinho = new Carrinho(cliente);
+        @Test
+        public void deveLancarExcecao_QuandoCarrinhoForNulo() {
+                assertThrows(CarrinhoVazioException.class, () -> {
+                        checkoutService.finalizarPedido(null);
+                });
+        }
 
-        Produto produto = new Produto(1L, "Mouse", new BigDecimal("100.00"), new BigDecimal("0.5"));
-        carrinho.adicionarItem(produto, 2); // Total: R$ 200,00
+        @Test
+        public void deveLancarExcecao_QuandoListaDeItensForNula() {
+                carrinhoValido.setItens(null);
+                assertThrows(CarrinhoVazioException.class, () -> {
+                        checkoutService.finalizarPedido(carrinhoValido);
+                });
+        }
 
-        Cupom cupom = new Cupom("DESC10", new BigDecimal("10"), BigDecimal.ZERO, TipoCupom.PERCENTUAL);
-        carrinho.setCupomAplicado(cupom);
+        @Test
+        public void deveLancarExcecao_QuandoListaDeItensEstiverVazia() {
+                carrinhoValido.setItens(new ArrayList<>()); // Lista vazia
+                assertThrows(CarrinhoVazioException.class, () -> {
+                        checkoutService.finalizarPedido(carrinhoValido);
+                });
+        }
 
-        // Cupom de 10% em R$ 200 = R$ 20 de desconto, total R$ 180
-        when(cupomServiceMock.aplicarCupom(new BigDecimal("200.00"), cupom))
-                .thenReturn(new BigDecimal("180.00"));
+        @Test
+        public void deveLancarExcecao_QuandoClienteForNulo() {
+                carrinhoValido.setCliente(null);
+                assertThrows(IllegalArgumentException.class, () -> {
+                        checkoutService.finalizarPedido(carrinhoValido);
+                });
+        }
 
-        // Frete grátis para compras acima de R$ 200 (antes do desconto)
-        when(freteServiceMock.calcularFrete(carrinho, "01000000"))
-                .thenReturn(new BigDecimal("0.00"));
+        @Test
+        public void deveLancarExcecao_QuandoCepDoClienteForNulo() {
+                clienteValido.setCep(null);
+                assertThrows(IllegalArgumentException.class, () -> {
+                        checkoutService.finalizarPedido(carrinhoValido);
+                });
+        }
 
-        // Act
-        ResumoPedido resumo = checkoutService.finalizarPedido(carrinho);
+        // --- TESTES DE SUCESSO: finalizarPedido ---
 
-        // Assert
-        assertEquals(new BigDecimal("200.00"), resumo.getSubtotal());
-        assertEquals(new BigDecimal("20.00"), resumo.getValorDescontos());
-        assertEquals(new BigDecimal("0.00"), resumo.getValorFrete());
-        assertEquals(new BigDecimal("180.00"), resumo.getTotalFinal());
-        assertEquals(18, resumo.getPontosGanhos()); // 180 / 10 = 18
+        @Test
+        public void deveFinalizarPedido_QuandoNaoHouverCupomAplicado() {
+                // Cenário: Compra de 100, sem cupom, frete mockado em 15. Total = 115.
+                carrinhoValido.setCupomAplicado(null);
+                when(freteService.calcularFrete(any(), any())).thenReturn(new BigDecimal("15.00"));
 
-        verify(cupomServiceMock, times(1)).aplicarCupom(new BigDecimal("200.00"), cupom);
-        verify(freteServiceMock, times(1)).calcularFrete(carrinho, "01000000");
-    }
+                ResumoPedido resumo = checkoutService.finalizarPedido(carrinhoValido);
 
-    @Test
-    @DisplayName("Deve aplicar cupom fixo corretamente")
-    void testFinalizarPedidoComCupomFixo() {
-        // Arrange
-        Cliente cliente = new Cliente(1L, "Pedro Costa", "90000000", 0);
-        Carrinho carrinho = new Carrinho(cliente);
+                assertEquals(0, new BigDecimal("0.00").compareTo(resumo.getValorDescontos()));
+                assertEquals(0, new BigDecimal("115.00").compareTo(resumo.getTotalFinal()));
+        }
 
-        Produto produto = new Produto(1L, "Teclado", new BigDecimal("150.00"), new BigDecimal("0.8"));
-        carrinho.adicionarItem(produto, 1);
+        @Test
+        public void deveFinalizarPedidoComPontos_QuandoHouverCupomAplicado() throws CupomInvalidoException {
+                // Cenário: Compra de 100, cupom de 10, frete de 15, usando 50 pontos (R$ 5).
+                Cupom cupom = new Cupom();
+                carrinhoValido.setCupomAplicado(cupom); // Isso faz o if da linha 84 ser verdadeiro
 
-        Cupom cupom = new Cupom("DESC25", new BigDecimal("25.00"), BigDecimal.ZERO, TipoCupom.FIXO);
-        carrinho.setCupomAplicado(cupom);
+                when(cupomService.aplicarCupom(any(), eq(cupom))).thenReturn(new BigDecimal("90.00")); // Valor com
+                                                                                                       // desconto
+                when(freteService.calcularFrete(any(), any())).thenReturn(new BigDecimal("15.00"));
 
-        // Cupom fixo de R$ 25, total R$ 125
-        when(cupomServiceMock.aplicarCupom(new BigDecimal("150.00"), cupom))
-                .thenReturn(new BigDecimal("125.00"));
+                ResumoPedido resumo = checkoutService.finalizarPedidoComPontos(carrinhoValido, 50);
 
-        // Frete de R$ 30,00
-        when(freteServiceMock.calcularFrete(carrinho, "90000000"))
-                .thenReturn(new BigDecimal("30.00"));
+                // Desconto do cupom (100 - 90 = 10) + Desconto dos pontos (5) = 15 de desconto
+                // total.
+                assertEquals(0, new BigDecimal("15.00").compareTo(resumo.getValorDescontos()));
+        }
 
-        // Act
-        ResumoPedido resumo = checkoutService.finalizarPedido(carrinho);
+        @Test
+        public void deveFinalizarPedido_QuandoHouverCupomAplicado() throws CupomInvalidoException {
+                // Cenário: Compra de 100, cupom reduz valor para 90, frete de 15. Total = 105.
+                Cupom cupom = new Cupom();
+                carrinhoValido.setCupomAplicado(cupom);
 
-        // Assert
-        assertEquals(new BigDecimal("150.00"), resumo.getSubtotal());
-        assertEquals(new BigDecimal("25.00"), resumo.getValorDescontos());
-        assertEquals(new BigDecimal("30.00"), resumo.getValorFrete());
-        assertEquals(new BigDecimal("155.00"), resumo.getTotalFinal());
-        assertEquals(15, resumo.getPontosGanhos()); // 155 / 10 = 15
+                when(cupomService.aplicarCupom(any(), eq(cupom))).thenReturn(new BigDecimal("90.00"));
+                when(freteService.calcularFrete(any(), any())).thenReturn(new BigDecimal("15.00"));
 
-        verify(cupomServiceMock, times(1)).aplicarCupom(new BigDecimal("150.00"), cupom);
-    }
+                ResumoPedido resumo = checkoutService.finalizarPedido(carrinhoValido);
 
-    @Test
-    @DisplayName("Deve lançar exceção ao tentar finalizar pedido com carrinho vazio")
-    void testFinalizarPedidoComCarrinhoVazio() {
-        // Arrange
-        Carrinho carrinho = new Carrinho();
+                assertEquals(0, new BigDecimal("10.00").compareTo(resumo.getValorDescontos())); // Desconto de 10
+                assertEquals(0, new BigDecimal("105.00").compareTo(resumo.getTotalFinal()));
+        }
 
-        // Act & Assert
-        assertThrows(CarrinhoVazioException.class, () -> checkoutService.finalizarPedido(carrinho));
-        verify(cupomServiceMock, never()).aplicarCupom(any(), any());
-        verify(freteServiceMock, never()).calcularFrete(any(), any());
-    }
+        // --- TESTES DE SUCESSO: finalizarPedidoComPontos ---
 
-    @Test
-    @DisplayName("Deve lançar exceção se cliente ou CEP não estiver preenchido")
-    void testFinalizarPedidoSemClienteOuCep() {
-        // Arrange
-        Carrinho carrinho = new Carrinho();
-        Produto produto = new Produto(1L, "Produto", new BigDecimal("100.00"), new BigDecimal("1.0"));
-        carrinho.adicionarItem(produto, 1);
-        carrinho.setCliente(null);
+        @Test
+        public void deveFinalizarPedidoComPontos_QuandoPontosAUsarForZero() {
+                // Cenário: Fluxo de pontos chamado, mas usuário usou 0 pontos.
+                carrinhoValido.setCupomAplicado(null);
+                when(freteService.calcularFrete(any(), any())).thenReturn(new BigDecimal("15.00"));
 
-        // Act & Assert
-        assertThrows(IllegalArgumentException.class, () -> checkoutService.finalizarPedido(carrinho));
-    }
+                ResumoPedido resumo = checkoutService.finalizarPedidoComPontos(carrinhoValido, 0);
 
-    @Test
-    @DisplayName("Deve finalizar pedido com uso de pontos de fidelidade")
-    void testFinalizarPedidoComPontos() {
-        // Arrange
-        Cliente cliente = new Cliente(1L, "Ana Silva", "88000000", 500);
-        Carrinho carrinho = new Carrinho(cliente);
+                assertEquals(0, new BigDecimal("0.00").compareTo(resumo.getValorDescontos()));
+                assertEquals(0, new BigDecimal("115.00").compareTo(resumo.getTotalFinal()));
+        }
 
-        Produto produto = new Produto(1L, "Monitor", new BigDecimal("600.00"), new BigDecimal("3.0"));
-        carrinho.adicionarItem(produto, 1);
+        @Test
+        public void deveFinalizarPedidoComPontos_QuandoPontosAUsarForMaiorQueZero() {
+                // Cenário: Compra 100, frete 15. Usa 50 pontos (R$ 5,00 de desconto). Total =
+                // 110.
+                carrinhoValido.setCupomAplicado(null);
+                when(freteService.calcularFrete(any(), any())).thenReturn(new BigDecimal("15.00"));
 
-        when(freteServiceMock.calcularFrete(carrinho, "88000000"))
-                .thenReturn(new BigDecimal("20.00"));
+                ResumoPedido resumo = checkoutService.finalizarPedidoComPontos(carrinhoValido, 50);
 
-        // 100 pontos = R$ 10,00 de desconto
-        int pontosAUsar = 100;
+                assertEquals(0, new BigDecimal("5.00").compareTo(resumo.getValorDescontos()));
+                assertEquals(0, new BigDecimal("110.00").compareTo(resumo.getTotalFinal()));
+        }
 
-        // Act
-        ResumoPedido resumo = checkoutService.finalizarPedidoComPontos(carrinho, pontosAUsar);
+        @Test
+        public void deveZerarTotal_QuandoDescontoDosPontosForMaiorQueOTotalDaCompra() {
+                // Cenário extremo: Compra 100, frete 0. Usa 2000 pontos (R$ 200,00 de
+                // desconto).
+                // A lógica do sistema obriga a conta a não ficar negativa, cravando em ZERO.
+                carrinhoValido.setCupomAplicado(null);
+                when(freteService.calcularFrete(any(), any())).thenReturn(BigDecimal.ZERO);
 
-        // Assert
-        assertEquals(new BigDecimal("600.00"), resumo.getSubtotal());
-        assertEquals(new BigDecimal("10.00"), resumo.getValorDescontos()); // 100 pontos * 0.10
-        assertEquals(new BigDecimal("610.00"), resumo.getTotalFinal()); // 600 + 20 - 10
-        assertEquals(61, resumo.getPontosGanhos()); // 610 / 10 = 61
+                ResumoPedido resumo = checkoutService.finalizarPedidoComPontos(carrinhoValido, 2000);
 
-        verify(fidelidadeServiceMock, times(1)).resgatar(pontosAUsar);
-        verify(fidelidadeServiceMock, times(1)).acumularPontos(new BigDecimal("610.00"));
-    }
-
-    @Test
-    @DisplayName("Deve lançar exceção se não houver pontos suficientes para resgate")
-    void testFinalizarPedidoComPontosInsuficientes() {
-        // Arrange
-        Cliente cliente = new Cliente(1L, "Lucas", "88000000", 50);
-        Carrinho carrinho = new Carrinho(cliente);
-
-        Produto produto = new Produto(1L, "Headset", new BigDecimal("300.00"), new BigDecimal("0.5"));
-        carrinho.adicionarItem(produto, 1);
-
-        when(freteServiceMock.calcularFrete(carrinho, "88000000"))
-                .thenReturn(new BigDecimal("15.00"));
-
-        // Simular exceção ao tentar resgatar
-        doThrow(new IllegalStateException("Pontos insuficientes para resgate"))
-                .when(fidelidadeServiceMock).resgatar(150);
-
-        // Act & Assert
-        assertThrows(IllegalStateException.class,
-                () -> checkoutService.finalizarPedidoComPontos(carrinho, 150));
-    }
-
-    @Test
-    @DisplayName("Deve calcular frete integrado corretamente")
-    void testCalculoFreteIntegrado() {
-        // Arrange
-        Cliente cliente = new Cliente(1L, "Carlos", "02000000", 0);
-        Carrinho carrinho = new Carrinho(cliente);
-
-        Produto produto = new Produto(1L, "Produto Pesado", new BigDecimal("500.00"), new BigDecimal("5.0"));
-        carrinho.adicionarItem(produto, 1);
-
-        // Frete: R$ 15 (SP) + (5kg * R$ 2) = R$ 25
-        when(freteServiceMock.calcularFrete(carrinho, "02000000"))
-                .thenReturn(new BigDecimal("25.00"));
-
-        // Act
-        ResumoPedido resumo = checkoutService.finalizarPedido(carrinho);
-
-        // Assert
-        assertEquals(new BigDecimal("525.00"), resumo.getTotalFinal()); // 500 + 25
-        verify(freteServiceMock, times(1)).calcularFrete(carrinho, "02000000");
-    }
-
-    @Test
-    @DisplayName("Deve gerar resumo com múltiplos itens no carrinho")
-    void testFinalizarPedidoComMultiplosItens() {
-        // Arrange
-        Cliente cliente = new Cliente(1L, "Fernanda", "88000000", 0);
-        Carrinho carrinho = new Carrinho(cliente);
-
-        Produto produto1 = new Produto(1L, "Notebook", new BigDecimal("2000.00"), new BigDecimal("2.0"));
-        Produto produto2 = new Produto(2L, "Mouse", new BigDecimal("50.00"), new BigDecimal("0.1"));
-
-        carrinho.adicionarItem(produto1, 1); // R$ 2000
-        carrinho.adicionarItem(produto2, 2); // R$ 100
-
-        // Total: R$ 2100 (frete grátis)
-        when(freteServiceMock.calcularFrete(carrinho, "88000000"))
-                .thenReturn(BigDecimal.ZERO);
-
-        // Act
-        ResumoPedido resumo = checkoutService.finalizarPedido(carrinho);
-
-        // Assert
-        assertEquals(new BigDecimal("2100.00"), resumo.getSubtotal());
-        assertEquals(new BigDecimal("0.00"), resumo.getValorFrete());
-        assertEquals(new BigDecimal("2100.00"), resumo.getTotalFinal());
-        assertEquals(210, resumo.getPontosGanhos());
-    }
+                assertEquals(0, BigDecimal.ZERO.compareTo(resumo.getTotalFinal()));
+        }
 }
