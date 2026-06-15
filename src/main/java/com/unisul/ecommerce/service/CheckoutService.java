@@ -48,10 +48,9 @@ public class CheckoutService {
         fidelidadeService.acumularPontos(totalFinal);
 
         Cliente cliente = carrinho.getCliente();
-        if (cliente != null) {
-            int novosPontos = cliente.getSaldoPontos() + pontosGanhos;
-            cliente.setSaldoPontos(novosPontos);
-        }
+
+        int novosPontos = cliente.getSaldoPontos() + pontosGanhos;
+        cliente.setSaldoPontos(novosPontos);
 
         // CORREÇÃO FINAL: Forçando 2 casas decimais em todos os valores monetários do
         // Resumo
@@ -104,19 +103,16 @@ public class CheckoutService {
 
             valorDescontos = valorDescontos.add(descontoPontos);
 
-            if (cliente != null) {
-                int novos = cliente.getSaldoPontos() - pontosAUsar;
-                cliente.setSaldoPontos(Math.max(0, novos));
-            }
+            int novos = cliente.getSaldoPontos() - pontosAUsar;
+            cliente.setSaldoPontos(Math.max(0, novos));
+
         }
 
         int pontosGanhos = calcularPontosGanhos(totalFinal);
         fidelidadeService.acumularPontos(totalFinal);
 
-        if (cliente != null) {
-            int novosPontos = cliente.getSaldoPontos() + pontosGanhos;
-            cliente.setSaldoPontos(novosPontos);
-        }
+        int novosPontos = cliente.getSaldoPontos() + pontosGanhos;
+        cliente.setSaldoPontos(novosPontos);
 
         // CORREÇÃO FINAL: Forçando 2 casas decimais em todos os valores monetários do
         // Resumo
