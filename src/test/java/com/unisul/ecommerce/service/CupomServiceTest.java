@@ -60,15 +60,11 @@ public class CupomServiceTest {
     public void deveRetornarValorSemDesconto_QuandoTipoDoCupomForNuloOuDesconhecido() throws CupomInvalidoException {
         BigDecimal subtotal = new BigDecimal("100.00");
         
-        // Usa o Mockito para criar um "dublê" do cupom
         Cupom cupomMock = mock(Cupom.class);
         
-        // Ensina o dublê: "Quando perguntarem se você é válido, diga SIM"
         when(cupomMock.estaValido(subtotal)).thenReturn(true);
-        // Ensina o dublê: "Quando perguntarem o seu tipo, diga NULO (para forçar o caminho cego)"
         when(cupomMock.getTipo()).thenReturn(null);
         
-        // *** A CORREÇÃO ESTÁ AQUI: Passamos o cupomMock no lugar do cupomSemTipo ***
         BigDecimal valorFinal = cupomService.aplicarCupom(subtotal, cupomMock);
         
         // Como o tipo é nulo, ele não entra em nenhum if de desconto e o valor permanece 100
