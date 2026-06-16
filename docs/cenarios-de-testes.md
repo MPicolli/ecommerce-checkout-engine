@@ -50,8 +50,8 @@ Este documento descreve os cenários de teste planejados e implementados para va
 | 1 | Cupom percentual válido | Cupom 10%, carrinho R$ 100,00 | R$ 90,00 | RF02 | Implementado |
 | 2 | Cupom fixo maior que o total | Cupom R$ 50,00, carrinho R$ 40,00 | R$ 0,00 (nunca negativo) | RN02 | Implementado |
 | 3 | Cupom inativo | `ativo = false` | `CupomInvalidoException` | RN03 | Implementado |
-| 4 | Valor abaixo do mínimo exigido | Cupom exige R$ 100, carrinho R$ 40 | `CupomInvalidoException` | RN03 | Pendente |
-| 5 | Cupom fixo válido | Cupom R$ 20,00, carrinho R$ 80,00 | R$ 60,00 | RN02 | Pendente |
+| 4 | Valor abaixo do mínimo exigido | Cupom exige R$ 100, carrinho R$ 40 | `CupomInvalidoException` | RN03 | Implementado |
+| 5 | Cupom fixo válido | Cupom R$ 25,00, carrinho R$ 150,00 | R$ 125,00 | RN02 | Implementado |
 
 ## FidelidadeService — Pontos de Fidelidade
 
@@ -68,12 +68,20 @@ Este documento descreve os cenários de teste planejados e implementados para va
 
 | # | Cenário | Entrada | Resultado Esperado | Regra/Requisito | Status |
 |---|---|---|---|---|---|
-| 1 | Acúmulo de pontos | Compra R$ 150,00 | 15 pontos acumulados | RN09 | Implementado |
-| 2 | Acúmulo com valor não múltiplo de 10 | Compra R$ 155,00 | 15 pontos (truncado) | RN09 | Implementado |
-| 3 | Resgate com saldo suficiente | 150 pontos, resgatar 100 | Saldo: 50 pontos | RN10 | Implementado |
-| 4 | Resgate abaixo do mínimo (valor limite) | 80 pontos disponíveis | `IllegalStateException` | RN10 | Implementado |
-| 5 | Resgate maior que o saldo | Resgatar 200 com 100 disponíveis | `IllegalArgumentException` | RN11 | Implementado |
-| 6 | Valor gasto zero ou negativo | `valorGasto = 0` | Nenhum ponto acumulado | RN09 | Implementado |
+| 1 | Inicialização com zero pontos (construtor padrão) | `new FidelidadeService()` | 0 pontos | — | Implementado |
+| 2 | Inicialização com pontos positivos (construtor sobrecarregado) | `new FidelidadeService(150)` | 150 pontos | — | Implementado |
+| 3 | Construtor com pontos negativos | `new FidelidadeService(-10)` | IllegalArgumentException | Validação defensiva | Implementado |
+| 4 | Acúmulo com valor não múltiplo de 10 | Compra R$ 29,90 | 2 pontos (truncado) | RN09 | Implementado |
+| 5 | Valor gasto menor que R$ 10,00 | Compra R$ 9,99 | 0 pontos | RN09 | Implementado |
+| 6 | Valor gasto nulo | null | Nenhum ponto acumulado | RN09 | Implementado |
+| 7 | Valor gasto zero ou negativo | 0 ou -50,00 | Nenhum ponto acumulado | RN09 | Implementado |
+| 8 | Resgate com saldo suficiente | 150 pontos, resgatar 50 | Saldo: 100 pontos | RN10 | Implementado |
+| 9 | Resgate com saldo exato | 100 pontos, resgatar 100 | Saldo: 0 pontos | RN10 | Implementado |
+| 10 | Resgate com saldo abaixo do mínimo (valor limite: 99) | 99 pontos disponíveis | IllegalStateException | RN10 | Implementado |
+| 11 | Resgate maior que o saldo | Resgatar 200 com 150 disponíveis | IllegalArgumentException | RN11 | Implementado |
+| 12 | Resgate de zero ou valor negativo | resgatar(0) ou resgatar(-50) | IllegalArgumentException | Validação defensiva | Implementado |
+| 13 | Verificação de elegibilidade para resgate (true) | 100 ou 101 pontos | true | RN10 | Implementado |
+| 14 | Verificação de elegibilidade para resgate (false) | 99 pontos | false | RN10 | Implementado |
 
 ## CheckoutService — Processamento do Pedido
 
@@ -81,8 +89,8 @@ Este documento descreve os cenários de teste planejados e implementados para va
 - RF01: Cálculo do subtotal dos produtos
 - RF05: Geração do resumo completo da compra
 - RN08: Validação de cliente e CEP
-- RN10: Uso de pontos de fidelidade
-- RN11: Tratamento de pontos insuficientes
+- RN10: Uso de pontos de fidelidade no checkout
+- RN11: Tratamento de pontos insuficientes para resgate
 
 ### Cenários implementados
 
