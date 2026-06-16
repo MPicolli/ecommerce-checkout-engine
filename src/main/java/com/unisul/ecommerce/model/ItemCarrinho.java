@@ -17,7 +17,7 @@ public class ItemCarrinho {
     }
 
     public BigDecimal getSubtotal() {
-        if (this.produto == null || this.produto.getPreco() == null) {
+        if (this.produto == null) {
             return BigDecimal.ZERO;
         }
         return this.produto.getPreco().multiply(BigDecimal.valueOf(quantidade));
