@@ -18,7 +18,9 @@ public class ResumoPedido {
         this.valorDescontos = valorDescontos;
         this.valorFrete = valorFrete;
         this.pontosGanhos = pontosGanhos;
-        this.totalFinal = (totalFinal.compareTo(BigDecimal.ZERO) < 0) ? BigDecimal.ZERO : totalFinal;
+        // Blindagem contra nulo e valor negativo
+        this.totalFinal = (totalFinal == null || totalFinal.compareTo(BigDecimal.ZERO) < 0) ? BigDecimal.ZERO
+                : totalFinal;
     }
 
     public ResumoPedido() {
