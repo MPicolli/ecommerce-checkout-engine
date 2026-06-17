@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
+
+<HBox spacing="25.0" style="-fx-background-color: #F1F5F9;" xmlns="http://javafx.com/javafx/23" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.unisul.ecommerce.controller.CheckoutController">
+   <children>
+      <VBox spacing="15.0" prefWidth="340.0">
+         <children>
+            <Label text="Catálogo de Produtos" textFill="#2C3E50">
+               <font><Font name="System Bold" size="18.0" /></font>
+            </Label>
+            <TableView fx:id="tabelaProdutos" prefHeight="400.0" style="-fx-background-radius: 8; -fx-border-radius: 8; -fx-border-color: #94A3B8; -fx-border-width: 2; -fx-background-color: #F8FAFC;">
+              <columns>
+                <TableColumn fx:id="colProdutoNome" prefWidth="160.0" text="Nome" />
+                <TableColumn fx:id="colProdutoPreco" prefWidth="85.0" text="Preço" />
+                <TableColumn fx:id="colProdutoPeso" prefWidth="75.0" text="Peso (kg)" />
+              </columns>
+            </TableView>
+            <HBox spacing="12.0" alignment="CENTER_RIGHT">
+               <children>
+                  <Spinner fx:id="spinnerQuantidade" prefWidth="90.0" style="-fx-background-radius: 6; -fx-border-radius: 6; -fx-border-color: #94A3B8; -fx-border-width: 1.5;" />
+                  <Button mnemonicParsing="false" onAction="#adicionarAoCarrinho" prefHeight="32.0" prefWidth="100.0" text="Adicionar" style="-fx-background-color: #10B981; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: bold; -fx-cursor: hand;" />
+               </children>
+            </HBox>
+         </children>
+      </VBox>
+
+      <VBox spacing="20.0" prefWidth="420.0">
+         <children>
+            <Label text="Carrinho de Compras" textFill="#2C3E50">
+               <font><Font name="System Bold" size="18.0" /></font>
+            </Label>
+            <TableView fx:id="tabelaCarrinho" prefHeight="180.0" style="-fx-background-radius: 8; -fx-border-radius: 8; -fx-border-color: #94A3B8; -fx-border-width: 2; -fx-background-color: #F8FAFC;">
+              <columns>
+                <TableColumn fx:id="colCarrinhoNome" prefWidth="180.0" text="Item" />
+                <TableColumn fx:id="colCarrinhoPreco" prefWidth="80.0" text="Preço Un." />
+                <TableColumn fx:id="colCarrinhoQtd" prefWidth="65.0" text="Qtd" />
+                <TableColumn fx:id="colCarrinhoTotal" prefWidth="75.0" text="Total" />
+              </columns>
+            </TableView>
+
+            <HBox alignment="CENTER_RIGHT">
+               <children>
+                  <Button mnemonicParsing="false" onAction="#removerDoCarrinho" prefHeight="30.0" text="Remover Item Selecionado" style="-fx-background-color: #EF4444; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: bold; -fx-cursor: hand;" />
+               </children>
+            </HBox>
+
+            <GridPane hgap="15.0" vgap="12.0">
+              <columnConstraints>
+                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="130.0" />
+                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="250.0" />
+              </columnConstraints>
+              <rowConstraints>
+                <RowConstraints minHeight="10.0" prefHeight="35.0" vgrow="SOMETIMES" />
+                <RowConstraints minHeight="10.0" prefHeight="35.0" vgrow="SOMETIMES" />
+                <RowConstraints minHeight="10.0" prefHeight="35.0" vgrow="SOMETIMES" />
+              </rowConstraints>
+               <children>
+                  <Label text="CEP de Destino:" textFill="#4A5568" style="-fx-font-weight: 500;" />
+                  <TextField fx:id="txtCep" promptText="Ex: 88000-000" style="-fx-background-radius: 6; -fx-border-radius: 6; -fx-border-color: #94A3B8; -fx-border-width: 1.5; -fx-padding: 6;" GridPane.columnIndex="1" />
+                  <Label text="Cupom de Desconto:" textFill="#4A5568" style="-fx-font-weight: 500;" GridPane.rowIndex="1" />
+                  <TextField fx:id="txtCupom" promptText="Ex: CUPOM10" style="-fx-background-radius: 6; -fx-border-radius: 6; -fx-border-color: #94A3B8; -fx-border-width: 1.5; -fx-padding: 6;" GridPane.rowIndex="1" GridPane.columnIndex="1" />
+                  <Label text="Resgatar Pontos:" textFill="#4A5568" style="-fx-font-weight: 500;" GridPane.rowIndex="2" />
+                  <HBox spacing="12.0" alignment="CENTER_LEFT" GridPane.rowIndex="2" GridPane.columnIndex="1">
+                     <children>
+                        <CheckBox fx:id="chkUtilizarPontos" mnemonicParsing="false" text="Usar" textFill="#4A5568" />
+                        <TextField fx:id="txtPontosResgate" prefWidth="110.0" promptText="Mín. 100" disable="true" style="-fx-background-radius: 6; -fx-border-radius: 6; -fx-border-color: #94A3B8; -fx-border-width: 1.5; -fx-padding: 6;" />
+                     </children>
+                  </HBox>
+               </children>
+            </GridPane>
+
+            <Separator prefWidth="200.0" style="-fx-opacity: 0.5;" />
+
+            <VBox spacing="10.0" style="-fx-background-color: #F8FAFC; -fx-padding: 15; -fx-border-color: #94A3B8; -fx-border-width: 2; -fx-border-radius: 8; -fx-background-radius: 8;">
+               <children>
+                  <Label text="Resumo do Pedido" textFill="#334155">
+                     <font><Font name="System Bold" size="15.0" /></font>
+                  </Label>
+                  <HBox alignment="CENTER_LEFT"><children><Label text="Subtotal:" textFill="#64748B" /><Region HBox.hgrow="ALWAYS" /><Label fx:id="lblSubtotal" text="R$ 0,00" textFill="#334155" style="-fx-font-weight: bold;" /></children></HBox>
+                  <HBox alignment="CENTER_LEFT"><children><Label text="Desconto Cupom:" textFill="#64748B" /><Region HBox.hgrow="ALWAYS" /><Label fx:id="lblDescontoCupom" text="R$ 0,00" style="-fx-text-fill: #EF4444; -fx-font-weight: bold;" /></children></HBox>
+                  <HBox alignment="CENTER_LEFT"><children><Label text="Frete:" textFill="#64748B" /><Region HBox.hgrow="ALWAYS" /><Label fx:id="lblFrete" text="R$ 0,00" textFill="#334155" style="-fx-font-weight: bold;" /></children></HBox>
+                  <HBox alignment="CENTER_LEFT"><children><Label text="Desconto Pontos:" textFill="#64748B" /><Region HBox.hgrow="ALWAYS" /><Label fx:id="lblDescontoPontos" text="R$ 0,00" style="-fx-text-fill: #EF4444; -fx-font-weight: bold;" /></children></HBox>
+                  <Separator prefWidth="200.0" style="-fx-opacity: 0.4;" />
+                  <HBox alignment="CENTER_LEFT"><children><Label text="Total Final:" textFill="#1E293B"><font><Font name="System Bold" size="15.0" /></font></Label><Region HBox.hgrow="ALWAYS" /><Label fx:id="lblTotalFinal" text="R$ 0,00" textFill="#2563EB"><font><Font name="System Bold" size="16.0" /></font></Label></children></HBox>
+                  <HBox alignment="CENTER_LEFT"><children><Label text="Pontos Obtidos nesta compra:" textFill="#64748B" style="-fx-font-size: 11;" /><Region HBox.hgrow="ALWAYS" /><Label fx:id="lblPontosGanhos" text="0" textFill="#475569" style="-fx-font-weight: bold; -fx-font-size: 12;" /></children></HBox>
+               </children>
+            </VBox>
+
+            <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#finalizarCheckout" prefHeight="45.0" text="Calcular Valores / Processar" style="-fx-background-color: #3B82F6; -fx-text-fill: white; -fx-background-radius: 8; -fx-font-weight: bold; -fx-font-size: 14; -fx-cursor: hand;" />
+         </children>
+      </VBox>
+   </children>
+   <padding>
+      <Insets bottom="25.0" left="25.0" right="25.0" top="25.0" />
+   </padding>
+</HBox>
