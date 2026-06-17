@@ -11,7 +11,7 @@ public class Main extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
         // Carrega o arquivo FXML que está no mesmo nível do pacote
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/unisul/ecommerce/interface.fxml"));
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/unisul/ecommerce/view/interface.fxml"));
         Parent root = loader.load();
 
         // Configura e exibe a janela principal
