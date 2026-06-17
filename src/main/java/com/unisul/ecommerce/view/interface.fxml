@@ -30,6 +30,36 @@
 
       <VBox spacing="20.0" prefWidth="420.0">
          <children>
+            
+            <VBox spacing="5.0" style="-fx-background-color: #E2E8F0; -fx-padding: 10 15; -fx-background-radius: 8; -fx-border-radius: 8; -fx-border-color: #CBD5E1; -fx-border-width: 1;">
+               <children>
+                  <HBox alignment="CENTER_LEFT" spacing="5.0">
+                     <children>
+                        <Label text="👤 Cliente:" textFill="#475569">
+                           <font><Font name="System Bold" size="13.0" /></font>
+                        </Label>
+                        <Label fx:id="lblNomeCliente" text="Carregando..." textFill="#0F172A">
+                           <font><Font name="System Bold" size="13.0" /></font>
+                        </Label>
+                     </children>
+                  </HBox>
+                  <HBox alignment="CENTER_LEFT" spacing="5.0">
+                     <children>
+                        <Label fx:id="lblCpfCliente" text="📄 CPF: Não cadastrado" textFill="#475569">
+                           <font><Font size="12.0" /></font>
+                        </Label>
+                        <Region HBox.hgrow="ALWAYS" />
+                        <Label text="★ Saldo:" textFill="#475569">
+                           <font><Font name="System Bold" size="13.0" /></font>
+                        </Label>
+                        <Label fx:id="lblSaldoPontos" text="0 pts" textFill="#10B981">
+                           <font><Font name="System Bold" size="14.0" /></font>
+                        </Label>
+                     </children>
+                  </HBox>
+               </children>
+            </VBox>
+
             <Label text="Carrinho de Compras" textFill="#2C3E50">
                <font><Font name="System Bold" size="18.0" /></font>
             </Label>

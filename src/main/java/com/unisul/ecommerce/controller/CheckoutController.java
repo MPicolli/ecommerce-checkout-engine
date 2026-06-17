@@ -42,12 +42,17 @@ public class CheckoutController {
     @FXML private Label lblTotalFinal;
     @FXML private Label lblPontosGanhos;
 
+    @FXML private Label lblNomeCliente;
+    @FXML private Label lblCpfCliente;
+    @FXML private Label lblSaldoPontos;
+    
+    private int saldoPontosAtual = 500;
+
     private CheckoutService checkoutService;
     private List<Cupom> cuponsMock;
     private Carrinho carrinhoAtual;
     private Cliente clienteFicticio;
     
-    // Nossos Repositórios
     private ProdutoRepository produtoRepository; 
     private CupomRepository cupomRepository;
     private ClienteRepository clienteRepository;
@@ -56,17 +61,15 @@ public class CheckoutController {
     public void initialize() {
         CupomService cupomService = new CupomService();
         FreteService freteService = new FreteService();
-        FidelidadeService fidelidadeService = new FidelidadeService(500); 
+        FidelidadeService fidelidadeService = new FidelidadeService(saldoPontosAtual); 
         this.checkoutService = new CheckoutService(cupomService, freteService, fidelidadeService);
 
-        // Instanciando os repositórios
         this.produtoRepository = new ProdutoRepository(); 
         this.cupomRepository = new CupomRepository();
         this.clienteRepository = new ClienteRepository();
 
-        // Puxando os dados dos repositórios em vez de usar dados soltos
         this.cuponsMock = cupomRepository.buscarTodos();
-        this.clienteFicticio = clienteRepository.buscarTodos().get(0); // Pega o Cliente Demonstração
+        this.clienteFicticio = clienteRepository.buscarTodos().get(0); 
         
         this.carrinhoAtual = new Carrinho(clienteFicticio);
 
@@ -80,6 +83,25 @@ public class CheckoutController {
             txtPontosResgate.setDisable(!novo);
             if (!novo) txtPontosResgate.clear();
         });
+
+        // --- NOVO: Limita o TextField do CEP a 9 caracteres ---
+        txtCep.textProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue != null && newValue.length() > 9) {
+                txtCep.setText(oldValue);
+            }
+        });
+        
+        if (lblNomeCliente != null) {
+            lblNomeCliente.setText(clienteFicticio.getNome());
+        }
+        
+        if (lblCpfCliente != null) {
+            lblCpfCliente.setText("📄 CPF: 123.456.789-00");
+        }
+
+        if (lblSaldoPontos != null) {
+            lblSaldoPontos.setText(saldoPontosAtual + " pts");
+        }
     }
 
     @FXML
@@ -95,6 +117,8 @@ public class CheckoutController {
         
         tabelaCarrinho.setItems(FXCollections.observableArrayList(carrinhoAtual.getItens()));
         tabelaCarrinho.refresh();
+        
+        spinnerQuantidade.getValueFactory().setValue(1);
     }
 
     @FXML
@@ -111,23 +135,27 @@ public class CheckoutController {
         tabelaCarrinho.setItems(FXCollections.observableArrayList(carrinhoAtual.getItens()));
         tabelaCarrinho.refresh();
         
-        lblSubtotal.setText("R$ 0,00");
-        lblDescontoCupom.setText("R$ 0,00");
-        lblFrete.setText("R$ 0,00");
-        lblDescontoPontos.setText("R$ 0,00");
-        lblTotalFinal.setText("R$ 0,00");
-        lblPontosGanhos.setText("0");
+        limparResumo();
     }
 
     @FXML
     void finalizarCheckout() {
         try {
+            // 1. Validação robusta do CEP
             String cepDigitado = txtCep.getText();
             if (cepDigitado == null || cepDigitado.trim().isEmpty()) {
                 throw new IllegalArgumentException("O CEP de entrega é obrigatório.");
             }
+            if (!cepDigitado.matches("[0-9\\-]+")) {
+                throw new IllegalArgumentException("CEP inválido. Use apenas números e traço.");
+            }
+            if (cepDigitado.replace("-", "").length() != 8) {
+                throw new IllegalArgumentException("O CEP deve conter exatamente 8 dígitos.");
+            }
+            
             clienteFicticio.setCep(cepDigitado);
 
+            // 2. Validação do Cupom
             String codigoCupom = txtCupom.getText();
             BigDecimal descontoCupomCalculado = BigDecimal.ZERO;
 
@@ -141,11 +169,13 @@ public class CheckoutController {
                 carrinhoAtual.setCupomAplicado(null);
             }
 
+            // 3. Processamento do Pedido
             ResumoPedido resumo;
             BigDecimal descontoPontosCalculado = BigDecimal.ZERO;
+            int pontosParaResgatar = 0;
 
             if (chkUtilizarPontos.isSelected()) {
-                int pontosParaResgatar = Integer.parseInt(txtPontosResgate.getText().trim());
+                pontosParaResgatar = Integer.parseInt(txtPontosResgate.getText().trim());
                 resumo = checkoutService.finalizarPedidoComPontos(carrinhoAtual, pontosParaResgatar);
                 
                 descontoPontosCalculado = BigDecimal.valueOf(pontosParaResgatar).multiply(new BigDecimal("0.10"));
@@ -159,6 +189,7 @@ public class CheckoutController {
                 descontoCupomCalculado = resumo.getValorDescontos();
             }
 
+            // 4. Atualização da Interface
             lblSubtotal.setText(String.format("R$ %.2f", resumo.getSubtotal()));
             lblDescontoCupom.setText(String.format("-R$ %.2f", descontoCupomCalculado));
             lblFrete.setText(String.format("R$ %.2f", resumo.getValorFrete()));
@@ -166,9 +197,22 @@ public class CheckoutController {
             lblTotalFinal.setText(String.format("R$ %.2f", resumo.getTotalFinal()));
             lblPontosGanhos.setText(String.valueOf(resumo.getPontosGanhos()));
 
+            // Atualiza o saldo no topo da tela
+            saldoPontosAtual = saldoPontosAtual - pontosParaResgatar + resumo.getPontosGanhos();
+            if (lblSaldoPontos != null) {
+                lblSaldoPontos.setText(saldoPontosAtual + " pts");
+            }
+
+            exibirAlerta("Sucesso", "Pedido processado com sucesso!", Alert.AlertType.INFORMATION);
+            esvaziarCarrinho();
+
         } catch (NumberFormatException nfe) {
+            limparResumo(); 
             exibirAlerta("Erro de Digitação", "A quantidade de pontos deve ser um número inteiro.", Alert.AlertType.ERROR);
         } catch (CarrinhoVazioException | CupomInvalidoException | PontosInsuficientesException | IllegalArgumentException ex) {
+            // A blindagem: mesmo se der erro, limpamos o cupom aplicado para não travar o carrinho
+            carrinhoAtual.setCupomAplicado(null); 
+            limparResumo(); 
             exibirAlerta("Regra de Negócio Violada", ex.getMessage(), Alert.AlertType.ERROR);
         }
     }
@@ -182,6 +226,28 @@ public class CheckoutController {
         colCarrinhoPreco.setCellValueFactory(cell -> new SimpleObjectProperty<>(cell.getValue().getProduto().getPreco()));
         colCarrinhoQtd.setCellValueFactory(cell -> new SimpleIntegerProperty(cell.getValue().getQuantidade()).asObject());
         colCarrinhoTotal.setCellValueFactory(cell -> new SimpleObjectProperty<>(cell.getValue().getSubtotal()));
+    }
+
+    private void limparResumo() {
+        lblSubtotal.setText("R$ 0,00");
+        lblDescontoCupom.setText("R$ 0,00");
+        lblFrete.setText("R$ 0,00");
+        lblDescontoPontos.setText("R$ 0,00");
+        lblTotalFinal.setText("R$ 0,00");
+        lblPontosGanhos.setText("0");
+    }
+
+    private void esvaziarCarrinho() {
+        carrinhoAtual.getItens().clear();
+        tabelaCarrinho.setItems(FXCollections.observableArrayList(carrinhoAtual.getItens()));
+        tabelaCarrinho.refresh();
+        limparResumo();
+        txtCep.clear();
+        txtCupom.clear();
+        chkUtilizarPontos.setSelected(false);
+        txtPontosResgate.clear();
+        
+        spinnerQuantidade.getValueFactory().setValue(1);
     }
 
     private void exibirAlerta(String titulo, String msg, Alert.AlertType tipo) {
