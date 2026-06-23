@@ -31,6 +31,9 @@ Antes de começar, certifique-se de ter instalado em sua máquina:
 ## Instalação e Execução
 Siga os passos abaixo para clonar, compilar e executar o projeto em sua máquina local.
 
+### Tutorial Youtube:
+https://youtu.be/a6EGMguTojE
+
 ### 1. Clonar o Repositório
 Abra o terminal na pasta onde deseja salvar o projeto e clone o repositório principal:
 
