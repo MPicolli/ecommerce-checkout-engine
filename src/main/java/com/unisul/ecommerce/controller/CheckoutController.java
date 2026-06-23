@@ -29,7 +29,6 @@ public class CheckoutController {
     @FXML private TableColumn<ItemCarrinho, Integer> colCarrinhoQtd;
     @FXML private TableColumn<ItemCarrinho, BigDecimal> colCarrinhoTotal;
 
-    // Tabelas e Componentes Novos do Histórico e Painel de Cliente
     @FXML private TableView<ResumoPedido> tabelaHistorico;
     @FXML private TableColumn<ResumoPedido, String> colHistPedido;
     @FXML private TableColumn<ResumoPedido, BigDecimal> colHistTotal;
@@ -197,7 +196,6 @@ public class CheckoutController {
             lblTotalFinal.setText(String.format("R$ %.2f", resumo.getTotalFinal()));
             lblPontosGanhos.setText(String.valueOf(resumo.getPontosGanhos()));
 
-            // Alimenta a lista visual do histórico com o resumo recém-calculado
             listaHistorico.add(resumo);
 
             saldoPontosAtual = saldoPontosAtual - pontosParaResgatar + resumo.getPontosGanhos();
@@ -228,7 +226,6 @@ public class CheckoutController {
         colCarrinhoQtd.setCellValueFactory(cell -> new SimpleIntegerProperty(cell.getValue().getQuantidade()).asObject());
         colCarrinhoTotal.setCellValueFactory(cell -> new SimpleObjectProperty<>(cell.getValue().getSubtotal()));
 
-        // Mapeamentos novos para a tabela do histórico inferior
         colHistPedido.setCellValueFactory(cell -> new SimpleStringProperty("#" + (listaHistorico.indexOf(cell.getValue()) + 1)));
         colHistTotal.setCellValueFactory(cell -> new SimpleObjectProperty<>(cell.getValue().getTotalFinal()));
         colHistPontos.setCellValueFactory(cell -> new SimpleIntegerProperty(cell.getValue().getPontosGanhos()).asObject());
