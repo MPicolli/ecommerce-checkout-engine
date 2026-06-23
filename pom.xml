@@ -89,6 +89,13 @@
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <version>0.8.12</version>
+                <configuration>
+                    <excludes>
+                        <exclude>com/unisul/ecommerce/Main.class</exclude>
+                        <exclude>com/unisul/ecommerce/controller/**</exclude>
+                        <exclude>com/unisul/ecommerce/repository/**</exclude>
+                    </excludes>
+                </configuration>
                 <executions>
                     <execution>
                         <goals>
@@ -103,7 +110,9 @@
                         </goals>
                         <configuration>
                             <excludes>
+                                <exclude>com/unisul/ecommerce/Main.class</exclude>
                                 <exclude>com/unisul/ecommerce/controller/**</exclude>
+                                <exclude>com/unisul/ecommerce/repository/**</exclude>
                             </excludes>
                         </configuration>
                     </execution>

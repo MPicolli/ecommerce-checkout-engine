@@ -7,12 +7,12 @@
 
 <HBox spacing="25.0" style="-fx-background-color: #F1F5F9;" xmlns="http://javafx.com/javafx/23" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.unisul.ecommerce.controller.CheckoutController">
    <children>
-      <VBox spacing="15.0" prefWidth="340.0">
+      <VBox spacing="15.0" prefWidth="340.0" VBox.vgrow="ALWAYS">
          <children>
             <Label text="Catálogo de Produtos" textFill="#2C3E50">
                <font><Font name="System Bold" size="18.0" /></font>
             </Label>
-            <TableView fx:id="tabelaProdutos" prefHeight="400.0" style="-fx-background-radius: 8; -fx-border-radius: 8; -fx-border-color: #94A3B8; -fx-border-width: 2; -fx-background-color: #F8FAFC;">
+            <TableView fx:id="tabelaProdutos" prefHeight="220.0" style="-fx-background-radius: 8; -fx-border-radius: 8; -fx-border-color: #94A3B8; -fx-border-width: 2; -fx-background-color: #F8FAFC;">
               <columns>
                 <TableColumn fx:id="colProdutoNome" prefWidth="160.0" text="Nome" />
                 <TableColumn fx:id="colProdutoPreco" prefWidth="85.0" text="Preço" />
@@ -25,36 +25,40 @@
                   <Button mnemonicParsing="false" onAction="#adicionarAoCarrinho" prefHeight="32.0" prefWidth="100.0" text="Adicionar" style="-fx-background-color: #10B981; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: bold; -fx-cursor: hand;" />
                </children>
             </HBox>
+
+            <Separator prefWidth="200.0" style="-fx-opacity: 0.5;" />
+
+            <Region VBox.vgrow="ALWAYS" />
+
+            <Label text="Histórico de Compras" textFill="#2C3E50">
+               <font><Font name="System Bold" size="16.0" /></font>
+            </Label>
+            <TableView fx:id="tabelaHistorico" prefHeight="160.0" style="-fx-background-radius: 8; -fx-border-radius: 8; -fx-border-color: #94A3B8; -fx-border-width: 2; -fx-background-color: #F8FAFC;">
+              <columns>
+                <TableColumn fx:id="colHistPedido" prefWidth="90.0" text="Pedido" />
+                <TableColumn fx:id="colHistTotal" prefWidth="115.0" text="Total Final" />
+                <TableColumn fx:id="colHistPontos" prefWidth="110.0" text="Pontos" />
+              </columns>
+            </TableView>
          </children>
       </VBox>
 
-      <VBox spacing="20.0" prefWidth="420.0">
+      <VBox spacing="15.0" prefWidth="420.0">
          <children>
-            
             <VBox spacing="5.0" style="-fx-background-color: #E2E8F0; -fx-padding: 10 15; -fx-background-radius: 8; -fx-border-radius: 8; -fx-border-color: #CBD5E1; -fx-border-width: 1;">
                <children>
                   <HBox alignment="CENTER_LEFT" spacing="5.0">
                      <children>
-                        <Label text="👤 Cliente:" textFill="#475569">
-                           <font><Font name="System Bold" size="13.0" /></font>
-                        </Label>
-                        <Label fx:id="lblNomeCliente" text="Carregando..." textFill="#0F172A">
-                           <font><Font name="System Bold" size="13.0" /></font>
-                        </Label>
+                        <Label text="👤 Cliente:" textFill="#475569" style="-fx-font-weight: bold;" />
+                        <Label fx:id="lblNomeCliente" text="Carregando..." textFill="#0F172A" style="-fx-font-weight: bold;" />
                      </children>
                   </HBox>
                   <HBox alignment="CENTER_LEFT" spacing="5.0">
                      <children>
-                        <Label fx:id="lblCpfCliente" text="📄 CPF: Não cadastrado" textFill="#475569">
-                           <font><Font size="12.0" /></font>
-                        </Label>
+                        <Label fx:id="lblCpfCliente" text="📄 CPF: 123.456.789-00" textFill="#475569" />
                         <Region HBox.hgrow="ALWAYS" />
-                        <Label text="★ Saldo:" textFill="#475569">
-                           <font><Font name="System Bold" size="13.0" /></font>
-                        </Label>
-                        <Label fx:id="lblSaldoPontos" text="0 pts" textFill="#10B981">
-                           <font><Font name="System Bold" size="14.0" /></font>
-                        </Label>
+                        <Label text="★ Saldo:" textFill="#475569" style="-fx-font-weight: bold;" />
+                        <Label fx:id="lblSaldoPontos" text="500 pts" textFill="#10B981" style="-fx-font-weight: bold;" />
                      </children>
                   </HBox>
                </children>
@@ -63,7 +67,7 @@
             <Label text="Carrinho de Compras" textFill="#2C3E50">
                <font><Font name="System Bold" size="18.0" /></font>
             </Label>
-            <TableView fx:id="tabelaCarrinho" prefHeight="180.0" style="-fx-background-radius: 8; -fx-border-radius: 8; -fx-border-color: #94A3B8; -fx-border-width: 2; -fx-background-color: #F8FAFC;">
+            <TableView fx:id="tabelaCarrinho" prefHeight="140.0" style="-fx-background-radius: 8; -fx-border-radius: 8; -fx-border-color: #94A3B8; -fx-border-width: 2; -fx-background-color: #F8FAFC;">
               <columns>
                 <TableColumn fx:id="colCarrinhoNome" prefWidth="180.0" text="Item" />
                 <TableColumn fx:id="colCarrinhoPreco" prefWidth="80.0" text="Preço Un." />
@@ -107,9 +111,7 @@
 
             <VBox spacing="10.0" style="-fx-background-color: #F8FAFC; -fx-padding: 15; -fx-border-color: #94A3B8; -fx-border-width: 2; -fx-border-radius: 8; -fx-background-radius: 8;">
                <children>
-                  <Label text="Resumo do Pedido" textFill="#334155">
-                     <font><Font name="System Bold" size="15.0" /></font>
-                  </Label>
+                  <Label text="Resumo do Pedido" textFill="#334155"><font><Font name="System Bold" size="15.0" /></font></Label>
                   <HBox alignment="CENTER_LEFT"><children><Label text="Subtotal:" textFill="#64748B" /><Region HBox.hgrow="ALWAYS" /><Label fx:id="lblSubtotal" text="R$ 0,00" textFill="#334155" style="-fx-font-weight: bold;" /></children></HBox>
                   <HBox alignment="CENTER_LEFT"><children><Label text="Desconto Cupom:" textFill="#64748B" /><Region HBox.hgrow="ALWAYS" /><Label fx:id="lblDescontoCupom" text="R$ 0,00" style="-fx-text-fill: #EF4444; -fx-font-weight: bold;" /></children></HBox>
                   <HBox alignment="CENTER_LEFT"><children><Label text="Frete:" textFill="#64748B" /><Region HBox.hgrow="ALWAYS" /><Label fx:id="lblFrete" text="R$ 0,00" textFill="#334155" style="-fx-font-weight: bold;" /></children></HBox>
