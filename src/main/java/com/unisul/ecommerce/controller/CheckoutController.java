@@ -2,14 +2,13 @@ package com.unisul.ecommerce.controller;
 
 import com.unisul.ecommerce.model.*;
 import com.unisul.ecommerce.service.*;
+import com.unisul.ecommerce.repository.*;
 import com.unisul.ecommerce.exception.*;
-import com.unisul.ecommerce.repository.ProdutoRepository;
-import com.unisul.ecommerce.repository.CupomRepository;
-import com.unisul.ecommerce.repository.ClienteRepository;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 
@@ -29,6 +28,11 @@ public class CheckoutController {
     @FXML private TableColumn<ItemCarrinho, BigDecimal> colCarrinhoPreco;
     @FXML private TableColumn<ItemCarrinho, Integer> colCarrinhoQtd;
     @FXML private TableColumn<ItemCarrinho, BigDecimal> colCarrinhoTotal;
+
+    @FXML private TableView<ResumoPedido> tabelaHistorico;
+    @FXML private TableColumn<ResumoPedido, String> colHistPedido;
+    @FXML private TableColumn<ResumoPedido, BigDecimal> colHistTotal;
+    @FXML private TableColumn<ResumoPedido, Integer> colHistPontos;
 
     @FXML private TextField txtCep;
     @FXML private TextField txtCupom;
@@ -57,6 +61,8 @@ public class CheckoutController {
     private CupomRepository cupomRepository;
     private ClienteRepository clienteRepository;
 
+    private ObservableList<ResumoPedido> listaHistorico = FXCollections.observableArrayList();
+
     @FXML
     public void initialize() {
         CupomService cupomService = new CupomService();
@@ -78,13 +84,13 @@ public class CheckoutController {
         configurarMapeamentoTabelas();
 
         tabelaProdutos.setItems(FXCollections.observableArrayList(produtoRepository.buscarTodos()));
+        tabelaHistorico.setItems(listaHistorico);
 
         chkUtilizarPontos.selectedProperty().addListener((obs, antigo, novo) -> {
             txtPontosResgate.setDisable(!novo);
             if (!novo) txtPontosResgate.clear();
         });
 
-        // --- NOVO: Limita o TextField do CEP a 9 caracteres ---
         txtCep.textProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue != null && newValue.length() > 9) {
                 txtCep.setText(oldValue);
@@ -124,24 +130,20 @@ public class CheckoutController {
     @FXML
     void removerDoCarrinho() {
         ItemCarrinho itemSelecionado = tabelaCarrinho.getSelectionModel().getSelectedItem();
-        
         if (itemSelecionado == null) {
             exibirAlerta("Aviso", "Por favor, selecione um item no carrinho para remover.", Alert.AlertType.WARNING);
             return;
         }
 
         carrinhoAtual.getItens().remove(itemSelecionado);
-        
         tabelaCarrinho.setItems(FXCollections.observableArrayList(carrinhoAtual.getItens()));
         tabelaCarrinho.refresh();
-        
         limparResumo();
     }
 
     @FXML
     void finalizarCheckout() {
         try {
-            // 1. Validação robusta do CEP
             String cepDigitado = txtCep.getText();
             if (cepDigitado == null || cepDigitado.trim().isEmpty()) {
                 throw new IllegalArgumentException("O CEP de entrega é obrigatório.");
@@ -155,7 +157,6 @@ public class CheckoutController {
             
             clienteFicticio.setCep(cepDigitado);
 
-            // 2. Validação do Cupom
             String codigoCupom = txtCupom.getText();
             BigDecimal descontoCupomCalculado = BigDecimal.ZERO;
 
@@ -169,7 +170,6 @@ public class CheckoutController {
                 carrinhoAtual.setCupomAplicado(null);
             }
 
-            // 3. Processamento do Pedido
             ResumoPedido resumo;
             BigDecimal descontoPontosCalculado = BigDecimal.ZERO;
             int pontosParaResgatar = 0;
@@ -189,7 +189,6 @@ public class CheckoutController {
                 descontoCupomCalculado = resumo.getValorDescontos();
             }
 
-            // 4. Atualização da Interface
             lblSubtotal.setText(String.format("R$ %.2f", resumo.getSubtotal()));
             lblDescontoCupom.setText(String.format("-R$ %.2f", descontoCupomCalculado));
             lblFrete.setText(String.format("R$ %.2f", resumo.getValorFrete()));
@@ -197,20 +196,20 @@ public class CheckoutController {
             lblTotalFinal.setText(String.format("R$ %.2f", resumo.getTotalFinal()));
             lblPontosGanhos.setText(String.valueOf(resumo.getPontosGanhos()));
 
-            // Atualiza o saldo no topo da tela
+            listaHistorico.add(resumo);
+
             saldoPontosAtual = saldoPontosAtual - pontosParaResgatar + resumo.getPontosGanhos();
             if (lblSaldoPontos != null) {
                 lblSaldoPontos.setText(saldoPontosAtual + " pts");
             }
 
-            exibirAlerta("Sucesso", "Pedido processado com sucesso!", Alert.AlertType.INFORMATION);
+            exibirAlerta("Sucesso", "Pedido adicionado ao Histórico!", Alert.AlertType.INFORMATION);
             esvaziarCarrinho();
 
         } catch (NumberFormatException nfe) {
             limparResumo(); 
             exibirAlerta("Erro de Digitação", "A quantidade de pontos deve ser um número inteiro.", Alert.AlertType.ERROR);
         } catch (CarrinhoVazioException | CupomInvalidoException | PontosInsuficientesException | IllegalArgumentException ex) {
-            // A blindagem: mesmo se der erro, limpamos o cupom aplicado para não travar o carrinho
             carrinhoAtual.setCupomAplicado(null); 
             limparResumo(); 
             exibirAlerta("Regra de Negócio Violada", ex.getMessage(), Alert.AlertType.ERROR);
@@ -226,6 +225,10 @@ public class CheckoutController {
         colCarrinhoPreco.setCellValueFactory(cell -> new SimpleObjectProperty<>(cell.getValue().getProduto().getPreco()));
         colCarrinhoQtd.setCellValueFactory(cell -> new SimpleIntegerProperty(cell.getValue().getQuantidade()).asObject());
         colCarrinhoTotal.setCellValueFactory(cell -> new SimpleObjectProperty<>(cell.getValue().getSubtotal()));
+
+        colHistPedido.setCellValueFactory(cell -> new SimpleStringProperty("#" + (listaHistorico.indexOf(cell.getValue()) + 1)));
+        colHistTotal.setCellValueFactory(cell -> new SimpleObjectProperty<>(cell.getValue().getTotalFinal()));
+        colHistPontos.setCellValueFactory(cell -> new SimpleIntegerProperty(cell.getValue().getPontosGanhos()).asObject());
     }
 
     private void limparResumo() {
@@ -246,7 +249,6 @@ public class CheckoutController {
         txtCupom.clear();
         chkUtilizarPontos.setSelected(false);
         txtPontosResgate.clear();
-        
         spinnerQuantidade.getValueFactory().setValue(1);
     }
 

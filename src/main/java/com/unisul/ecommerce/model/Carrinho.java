@@ -22,7 +22,6 @@ public class Carrinho {
     }
 
     public void adicionarItem(Produto produto, int quantidade) {
-        // Blindagem: Impede inserção nula ou de produtos "fantasmas" sem ID
         if (produto == null || produto.getId() == null) {
             return;
         }
@@ -60,7 +59,6 @@ public class Carrinho {
         this.cupomAplicado = cupomAplicado;
     }
 
-    // Calcula e retorna o valor total de todos os itens no carrinho.
     public BigDecimal getValorTotal() {
         if (this.itens == null || this.itens.isEmpty()) {
             return BigDecimal.ZERO;

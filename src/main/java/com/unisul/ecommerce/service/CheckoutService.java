@@ -20,14 +20,6 @@ public class CheckoutService {
         this.fidelidadeService = fidelidadeService;
     }
 
-    /**
-     * Processa o checkout e gera o resumo do pedido.
-     * * @param carrinho o carrinho com itens e cliente
-     * 
-     * @return ResumoPedido com todos os cálculos finalizados
-     * @throws CarrinhoVazioException se o carrinho estiver vazio
-     * @throws CupomInvalidoException se o cupom for inválido
-     */
     public ResumoPedido finalizarPedido(Carrinho carrinho) throws CarrinhoVazioException, CupomInvalidoException {
         validarCarrinho(carrinho);
 
@@ -52,8 +44,6 @@ public class CheckoutService {
         int novosPontos = cliente.getSaldoPontos() + pontosGanhos;
         cliente.setSaldoPontos(novosPontos);
 
-        // CORREÇÃO FINAL: Forçando 2 casas decimais em todos os valores monetários do
-        // Resumo
         return new ResumoPedido(
                 carrinho,
                 subtotal.setScale(2, RoundingMode.HALF_UP),
@@ -63,15 +53,6 @@ public class CheckoutService {
                 totalFinal.setScale(2, RoundingMode.HALF_UP));
     }
 
-    /**
-     * Processa o checkout com uso de pontos de fidelidade.
-     * * @param carrinho o carrinho com itens e cliente
-     * 
-     * @param pontosAUsar quantidade de pontos a serem resgatados
-     * @return ResumoPedido com desconto aplicado pelos pontos
-     * @throws CarrinhoVazioException se o carrinho estiver vazio
-     * @throws CupomInvalidoException se o cupom for inválido
-     */
     public ResumoPedido finalizarPedidoComPontos(Carrinho carrinho, int pontosAUsar)
             throws CarrinhoVazioException, CupomInvalidoException {
 
@@ -114,8 +95,6 @@ public class CheckoutService {
         int novosPontos = cliente.getSaldoPontos() + pontosGanhos;
         cliente.setSaldoPontos(novosPontos);
 
-        // CORREÇÃO FINAL: Forçando 2 casas decimais em todos os valores monetários do
-        // Resumo
         return new ResumoPedido(
                 carrinho,
                 subtotal.setScale(2, RoundingMode.HALF_UP),
@@ -125,9 +104,6 @@ public class CheckoutService {
                 totalFinal.setScale(2, RoundingMode.HALF_UP));
     }
 
-    /**
-     * Valida se o carrinho está pronto para checkout.
-     */
     private void validarCarrinho(Carrinho carrinho) throws CarrinhoVazioException {
         if (carrinho == null || carrinho.getItens() == null || carrinho.getItens().isEmpty()) {
             throw new CarrinhoVazioException();
@@ -138,10 +114,6 @@ public class CheckoutService {
         }
     }
 
-    /**
-     * Calcula os pontos de fidelidade ganhos com a compra.
-     * Regra: 1 ponto a cada R$ 10,00 gastos
-     */
     private int calcularPontosGanhos(BigDecimal valorTotal) {
         return valorTotal.divide(BigDecimal.TEN, 0, RoundingMode.DOWN).intValue();
     }

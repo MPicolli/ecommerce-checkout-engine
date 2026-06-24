@@ -10,7 +10,6 @@ public class ClienteRepository {
     private List<Cliente> bancoDeClientes = new ArrayList<>();
 
     public ClienteRepository() {
-        // Usando apenas o construtor padrão que você criou
         bancoDeClientes.add(new Cliente("Cliente Demonstração", "88000-000"));
     }
 
